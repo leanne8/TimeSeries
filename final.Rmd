@@ -1,0 +1,18 @@
+---
+title: "Time Series Analysis on U.S. Citizen Air Travel to Canada"
+author: "Leanne Lee"
+output: pdf_document
+---
+
+#Introducion
+
+The scientific question motivating my work is "is there a seasonal trend for U.S.citizens to travel to Canada by air?" Canada is one of the closest country across the border of the United States. Many U.S. citizen consider Canada a great spot to travel during holiday. In the West Coast, we neighbor near Vancouver and Victoria, while the east coast has Toronto, Montreal and Quebec. 
+
+#Dataset 
+
+The dataset comes from the U.S. Department of Commerce, National Travel & Tourism Office. [NTTO Monthly Tourism Statistics] (http://travel.trade.gov/research/monthly/departures/index.html). The dataset contain U.S. outbound travel by world regions from Jan 1996 to Sep 2016. There are 249 monthly data points throughout these twenty years. 
+
+#Exploratory Data Analysis
+
+
+![Monthly Air Arrivals from U.S. to Canada](./images/monthly_plot.png)
