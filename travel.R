@@ -6,25 +6,39 @@ library(plyr)
 
 canada <- read.csv("./canada.csv", header = TRUE, sep = "")
 canada$Date <- as.Date(canada$Date)
+
 canada_ymd <- mutate(canada, date = ymd(canada$Date), 
        day = day(date), month = month(date), year = year(date))
 
+#Time Series plot 
 png("images/ts.png")
 gg <- ggplot(data=canada_ymd ,aes(y=Value,x=Date)) + geom_line( colour = canada_ymd$month) +
   ggtitle("Monthly Air travel to Canada")
 gg + geom_vline(xintercept=as.numeric(canada_ymd$Data),linetype=4) 
 dev.off()
 
+#Plot by months 
+travel<-ts(canada$Value,start=c(1996,1),end=c(2016,9),frequency=12)
+png("images/monthly_plot.png")
+m <-c('J','F','M','A','M','J','J','A','S','O','N','D')
+plot(travel, ylab='Number of arrivals',xlab='Time Index', type = 'l', 
+     main="Monthly Air arrivals to Canada")
+points(travel,pch=m)
+dev.off()
+
+
 ##Exploratory Data Analysis
 
-#Summary statistics of the canada value dataset 
 summary(canada$Value)
 sd(canada$Value)
 
 #STL
-travel<-ts(canada$Value,start=c(1996,1),end=c(2016,9),frequency=12)
+
+png("images/stl.png")
 stl_travel<-stl(travel,s.window = "periodic")
 plot(stl_travel, main="Seasonal Decomposition of Time Series by Loess for monthly Canada Travels")
+dev.off()
+
 #stl shows that there is a seasonal trend
 #The bar on the seasonal panel is only a bit larger than the data panel, meaning the
 #seasoning signal is large relative to the variation in the data
@@ -37,14 +51,6 @@ plot(stl_travel, main="Seasonal Decomposition of Time Series by Loess for monthl
 
 #plot the residual aginst time 
 residuals(travel)
-
-#Plotting
-png("images/monthly_plot.png")
-m <-c('J','F','M','A','M','J','J','A','S','O','N','D')
-plot(canada$Value, ylab='Number of arrivals',xlab='Time Index', type = 'l', 
-     main="Monthly Air arrivals to Canada")
-points(canada$Value,pch=m)
-dev.off()
 
 
 #The peak of the traveling season is July and August

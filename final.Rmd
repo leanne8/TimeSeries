@@ -16,3 +16,4 @@ The dataset comes from the U.S. Department of Commerce, National Travel & Touris
 
 
 ![Monthly Air Arrivals from U.S. to Canada](./images/monthly_plot.png)
+First, I plot the 
