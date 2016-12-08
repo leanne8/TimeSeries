@@ -14,6 +14,11 @@ The dataset comes from the U.S. Department of Commerce, National Travel & Touris
 
 #Exploratory Data Analysis
 
+```{r fig.width=5, fig.height=7,echo=FALSE}
+library(png)
+library(grid)
+img <- readPNG("./images/monthly_plot.png")
+grid.raster(img)
+```
 
-![Monthly Air Arrivals from U.S. to Canada](./images/monthly_plot.png)
-First, I plot the 
+First, I plot the time series for the monthly air arrivals from U.S. to Canada. By examing the time series, the plot looks seasonal with high peak in June, July and August. Students usually travel during their summer break and this is the main drive of the increase in air travel in these months. There is also a smaller peak in between of each cycle. 

@@ -182,6 +182,7 @@ png("images/frank_forecast.png")
 ggplot_forecast(model_df)
 dev.off()
 
+
 #Detech outlier
 detectAO(fit2) #Additive Outliers
 detectIO(fit2) #Innovative Outliers
@@ -197,8 +198,11 @@ p
 spec(resModel,main="Periodogram", kernel = kernel("daniell", c(3,3)), taper = 0.05,
      ci.plot = T)
 #Can draw a flat line between the interval so there is no ambigitiy
-# Very stable 
+#Very stable 
 
 ## Arch Garch Model
-garch(data, order = c(1,1))
+g <- garch(travel, order = c(1,1))
+plot(g) #use which to select the plot
+summary(g)
+## Why all NA in std. error and t-value?
 #only one bump at the end so 1,1 is good 
