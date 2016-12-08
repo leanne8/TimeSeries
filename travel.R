@@ -26,7 +26,6 @@ plot(travel, ylab='Number of arrivals',xlab='Time Index', type = 'l',
 points(travel,pch=m)
 dev.off()
 
-
 ##Exploratory Data Analysis
 
 summary(canada$Value)
@@ -48,9 +47,6 @@ dev.off()
 
 #In the data panel, there is no obvious sign of non-stationary, so we don't need to 
 # take differencing for now. 
-
-#plot the residual aginst time 
-residuals(travel)
 
 
 #The peak of the traveling season is July and August
@@ -85,7 +81,7 @@ eacf(log(canada$Value))
 #put the canada data into month matrix 
 data <- ts(canada$Value, freq = 12)
 #run auto arima
-auto <- auto.arima(log(data))
+auto <- auto.arima(log(travel))
 auto
 tsdisplay(residuals(auto))
 tsdiag(auto)
@@ -94,7 +90,7 @@ acf(residuals(auto), lag.max = 36)
 
 #With seasonal effect 
 #First model with seasonal effect 
-fit <- arima(log(data), order = c(2,0,2), seasonal=list(order = c(0,1,1), period = 12))
+fit <- arima(log(data), order = c(2,0,2), seasonal=list(order = c(2,1,2), period = 12))
 tsdisplay(residuals(fit))
 tsdiag(fit)
 acf(residuals(fit))
@@ -109,15 +105,17 @@ acf(residuals(fit1))
 pacf(residuals(fit1))
 
 #Third model with seasonal effect
-fit2 <- arima(log(data), order=c(2,0,1), seasonal=list(order = c(0,1,1), period = 12))
+fit2 <- arima(log(data), order=c(2,0,1), seasonal=list(order = c(0,1,2), period = 12))
 tsdisplay(residuals(fit2))
 tsdiag(fit2)
 plot(fit2)
 acf(residuals(fit2))
 #Fit2 has the smallest AIC 
-
 ##check p and q with auto
-##plot fitted model residual against time and find out what happen to peaks
+
+#Residual plot of the fitted model
+res <- ts(resid(fit2), s=1996,f=12)
+plot.ts(res,ylab="residuals of the fitted model")
 
 McLeod.Li.test(fit2) 
 #above 0.5 of p-values meaning didn't reject H0. 
@@ -131,17 +129,18 @@ qqnorm(resModel)
 qqline(resModel)
 # There are a few outlier in the beginnings 
 hist(resModel,xlab='Standardized Residuals for the fitted model')
-#shapiro.test(resModel)
+#p-value is lower than 0.5 so it doesnt reject null ??
+shapiro.test(resModel)
 
 # From Frank Davenport
 funggcast <- function(dn,fcast){ 
   
-  en<-max(time(fcast$mean)) #extract the max date used in the forecast
+ # en<-max(time(fcast$mean)) #extract the max date used in the forecast
   
   #Extract Source and Training Data
-  ds<-as.data.frame(window(dn,end=en))
+  ds<-as.data.frame(window(dn,end=c(2014,9)))
   names(ds)<-'observed'
-  ds$date<-as.Date(time(window(dn,end=en)))
+  ds$date<-as.Date(time(window(dn,end=c(2014,9))))
   
   #Extract the Fitted Values (need to figure out how to grab confidence intervals)
   dfit<-as.data.frame(fcast$fitted)
@@ -160,12 +159,13 @@ funggcast <- function(dn,fcast){
   
 }
 
-best_model <- Arima(log(data), order=c(2,0,1), seasonal=list(order = c(0,1,1), period = 12))
-plot(forecast(best_model, h = 12))
-abline(h=auto$coef["intercept"], lty=2) #draw a horizontal line in the mean
-model_forecast <- forecast(best_model)
-model_df <- funggcast(best_model, model_forecast)
-#error!! 
+train <- window(travel, end=c(2014,9))
+fit_train_model <- Arima(train, order=c(2,0,1), 
+                    seasonal=list(order = c(0,1,2), period = 12), include.drift=T)
+plot(forecast(fit_train_model))
+
+model_forecast <- forecast(fit_train_model)
+model_df <- funggcast(travel, model_forecast)
 
 ggplot_forecast <- function(pd) {
   p1a<-ggplot(data=pd,aes(x=date,y=observed))
@@ -178,10 +178,9 @@ ggplot_forecast <- function(pd) {
   p1a<-p1a+ggtitle("Arima Fit to Simulated Data\n(black=forecast, blue=fitted, red=data, shadow=95% conf. interval)")
   p1a
 }
+png("images/frank_forecast.png")
 ggplot_forecast(model_df)
-
-
-canada_train <- window(canada, end = 2011.99)
+dev.off()
 
 #Detech outlier
 detectAO(fit2) #Additive Outliers
@@ -193,7 +192,7 @@ detectIO(fit2) #Innovative Outliers
 ## Spectral Analysis
 p <- periodogram(resModel, main = "Periodogram for the residuals of the model")
 p
-##plot = "y"??? 
+
 ?spec.pgram()
 spec(resModel,main="Periodogram", kernel = kernel("daniell", c(3,3)), taper = 0.05,
      ci.plot = T)
