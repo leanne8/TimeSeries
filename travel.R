@@ -26,6 +26,8 @@ plot(travel, ylab='Number of arrivals',xlab='Time Index', type = 'l',
 points(travel,pch=m)
 dev.off()
 
+## How to test if it's stationary?? 
+
 ##Exploratory Data Analysis
 
 summary(canada$Value)
@@ -38,20 +40,11 @@ stl_travel<-stl(travel,s.window = "periodic")
 plot(stl_travel, main="Seasonal Decomposition of Time Series by Loess for monthly Canada Travels")
 dev.off()
 
-#stl shows that there is a seasonal trend
-#The bar on the seasonal panel is only a bit larger than the data panel, meaning the
-#seasoning signal is large relative to the variation in the data
-# The trend panel has larger box than the data and seasonal panels, meaning 
-# the variation attrivuted to the trend is smaller than seasonal component, 
-# which the trend is not dominating. But there's an upward trend at the end
-
 #In the data panel, there is no obvious sign of non-stationary, so we don't need to 
-# take differencing for now. 
+# take differencing for now. ????
 
-
-#The peak of the traveling season is July and August
 #Because the graph doesn't seem like it get effect when the variation increases with the level of the series,
-#so there is no need of taking logs 
+#so there is no need of taking logs  ??????
 
 #ACF for MA
 acf(canada$Value, main = "ACF for air travel to Canada")

@@ -21,4 +21,13 @@ img <- readPNG("./images/monthly_plot.png")
 grid.raster(img)
 ```
 
-First, I plot the time series for the monthly air arrivals from U.S. to Canada. By examing the time series, the plot looks seasonal with high peak in June, July and August. Students usually travel during their summer break and this is the main drive of the increase in air travel in these months. There is also a smaller peak in between of each cycle. 
+First, I plot the time series for the monthly air arrivals from U.S. to Canada. By examining the time series, the plot looks seasonal with high peak in June, July and August. Students usually travel during their summer break and this is the main drive of the increase in air travel in these months. There is also a smaller peak in between of each cycle. The small peaks take place in December, which is during Christmas break and students tend to go travel more often. Because the graph doesn't get effect when the variation increase with the level of the series, so I didn't consider the log of the time series. 
+ 
+
+```{r fig.width=5, fig.height=7,echo=FALSE}
+img <- readPNG("./images/stl.png")
+grid.raster(img)
+```
+
+After the basic inspection on the time series, I ran the **stl()** command for a season decomposition of Time Series by Loess. I first inspect the data section. There is no sign of non-stationary, so I did not consider to take differencing. I consider the bar on the right hand side as one unit of variation. The bar on the seasonal panel is slightly bigger than the data panel, meaning the seasonal effect is larger than the variation in the data. In the trend panel, it has a larger variation box than the data and seasonal panels, meaning the variation attributed to the trend is much smaller than the seasonal component. It also indicated the trend is not dominating, but there's an upward trend at the end. 
+
