@@ -39,15 +39,20 @@ png("images/stl.png")
 stl_travel<-stl(travel,s.window = "periodic")
 plot(stl_travel, main="Seasonal Decomposition of Time Series by Loess for monthly Canada Travels")
 dev.off()
-
+g
 #In the data panel, there is no obvious sign of non-stationary, so we don't need to 
 # take differencing for now. ????
+# we look at the residuals in the stl and see if there's need of differencing 
 
 #Because the graph doesn't seem like it get effect when the variation increases with the level of the series,
 #so there is no need of taking logs  ??????
+#no log 
+
+#which acf and pacf to pick?? the regular one without log and difference?? 
 
 #ACF for MA
-acf(canada$Value, main = "ACF for air travel to Canada")
+
+acf(canada$Value, lag.max = 60,  main = "ACF for air travel to Canada")
 acf(log(canada$Value),lag.max=60, main = "ACF for log Air Travel to Canada") 
 #the acf appear to be seasonality 
 acf(diff(log(canada$Value),12),lag.max=60, ci.type='ma',
@@ -56,14 +61,14 @@ acf(diff(diff(log(canada$Value)),12),lag.max=60,ci.type='ma',
     main="ACF of Twice Difference of logarithm of Air Travel to Canada") 
 
 #PACF for AR 
-pacf(canada$Value, main = "PACF for air trave to Canada")
+pacf(canada$Value, lag.max = 60, main = "PACF for air trave to Canada")
 pacf(log(canada$Value), lag.max = 60, main = "PACF for log Air Travel to Canada")
 pacf(diff(log(canada$Value),12),lag.max=36,
      main="PACF of First Difference of logarithm of Air Travel to Canada") 
 pacf(diff(diff(log(canada$Value)),12),lag.max=36,
      main="PACF of Twice Difference of logarithm of Air Travel to Canada") 
 
-plot(diff(diff(log(canada$Value)),lag=12),xlab='Time', ylab ="Log of arrivals", 
+plot(diff(log(canada$Value),lag=12),xlab='Time', ylab ="Log of arrivals", 
      type = 'l', main = "Twice Difference of logarithm of air travel to Canada") 
 
 eacf(log(canada$Value))
@@ -102,7 +107,7 @@ fit2 <- arima(log(data), order=c(2,0,1), seasonal=list(order = c(0,1,2), period 
 tsdisplay(residuals(fit2))
 tsdiag(fit2)
 plot(fit2)
-acf(residuals(fit2))
+acf(residuals(fit2)) #compare back to the original acf and pacf 
 #Fit2 has the smallest AIC 
 ##check p and q with auto
 
@@ -152,6 +157,7 @@ funggcast <- function(dn,fcast){
   
 }
 
+#cut off the date in earlier term, to forecast more point
 train <- window(travel, end=c(2014,9))
 fit_train_model <- Arima(train, order=c(2,0,1), 
                     seasonal=list(order = c(0,1,2), period = 12), include.drift=T)
@@ -159,6 +165,7 @@ plot(forecast(fit_train_model))
 
 model_forecast <- forecast(fit_train_model)
 model_df <- funggcast(travel, model_forecast)
+
 
 ggplot_forecast <- function(pd) {
   p1a<-ggplot(data=pd,aes(x=date,y=observed))
@@ -171,6 +178,7 @@ ggplot_forecast <- function(pd) {
   p1a<-p1a+ggtitle("Arima Fit to Simulated Data\n(black=forecast, blue=fitted, red=data, shadow=95% conf. interval)")
   p1a
 }
+
 png("images/frank_forecast.png")
 ggplot_forecast(model_df)
 dev.off()
@@ -184,18 +192,22 @@ detectIO(fit2) #Innovative Outliers
 #IO tells more story 
 
 ## Spectral Analysis
-p <- periodogram(resModel, main = "Periodogram for the residuals of the model")
-p
+periodogram(resModel, main = "Periodogram for the residuals of the model")
 
-?spec.pgram()
+spec.pgram(resModel,  kernel = kernel("daniell", c(3,3)), taper = 0.05)
 spec(resModel,main="Periodogram", kernel = kernel("daniell", c(3,3)), taper = 0.05,
      ci.plot = T)
 #Can draw a flat line between the interval so there is no ambigitiy
 #Very stable 
 
 ## Arch Garch Model
-g <- garch(travel, order = c(1,1))
+#
+g <- garch(resModel, order = c(1,1))
 plot(g) #use which to select the plot
 summary(g)
+#put in garch equation
 ## Why all NA in std. error and t-value?
+#computational error so there is NA value
+#based on the small b1 meaning no autoregressive effect 
+#that's why its not necassary to do the garch model 
 #only one bump at the end so 1,1 is good 

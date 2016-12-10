@@ -1,8 +1,23 @@
 ---
 title: "Time Series Analysis on U.S. Citizen Air Travel to Canada"
 author: "Leanne Lee"
+header-includes:
+   - \usepackage{setspace}
+   - \doublespacing
 output: pdf_document
 ---
+
+<style type="text/css">
+body, td {
+   font-size: 12px;
+}
+code.r{
+  font-size: 20px;
+}
+pre {
+  font-size: 20px
+}
+</style>
 
 #Introducion
 
@@ -29,5 +44,7 @@ img <- readPNG("./images/stl.png")
 grid.raster(img)
 ```
 
-After the basic inspection on the time series, I ran the **stl()** command for a season decomposition of Time Series by Loess. I first inspect the data section. There is no sign of non-stationary, so I did not consider to take differencing. I consider the bar on the right hand side as one unit of variation. The bar on the seasonal panel is slightly bigger than the data panel, meaning the seasonal effect is larger than the variation in the data. In the trend panel, it has a larger variation box than the data and seasonal panels, meaning the variation attributed to the trend is much smaller than the seasonal component. It also indicated the trend is not dominating, but there's an upward trend at the end. 
+After the basic inspection on the time series, I ran the **stl()** command for a season decomposition of Time Series by Loess. I first inspect the data section. The data looks stationary. I consider the bar on the right hand side as one unit of variation. The bar on the seasonal panel is slightly bigger than the data panel, meaning the seasonal effect is larger than the variation in the data. In the trend panel, it has a larger variation box than the data and seasonal panels, meaning the variation attributed to the trend is much smaller than the seasonal component. It also indicated the trend is not dominating, but there's an upward trend at the end. The spike upward trend of air traveling to Canada in this summer is because the low Canadian dollor, causing a boost to tourism in Canada. The remainder panel shows there are some high residuals in year of 2002 - year of 2005 and year of 2016. 
 
+
+Based on the results on ACF and PACF, I found that there are autoregressive and moving average effects. So I ran the ARIMA model with changing order of p,d, q and seasonal orders. First, I ran the auto arima to get a rough estimate of my orders of seasonal ARIMA. Since the original series looks stationary, I do not need to consider the high order of differencing(**d**). 
