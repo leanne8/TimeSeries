@@ -4,20 +4,16 @@ author: "Leanne Lee"
 header-includes:
    - \usepackage{setspace}
    - \doublespacing
+fontsize: 12pt
 output: pdf_document
 ---
 
-<style type="text/css">
-body, td {
-   font-size: 12px;
-}
-code.r{
-  font-size: 20px;
-}
-pre {
-  font-size: 20px
-}
-</style>
+```{r, echo = F}
+options( warn = 2 )
+library(png)
+library(grid)
+library(gridExtra)
+```
 
 #Introducion
 
@@ -30,15 +26,12 @@ The dataset comes from the U.S. Department of Commerce, National Travel & Touris
 #Exploratory Data Analysis
 
 ```{r fig.width=5, fig.height=7,echo=FALSE}
-library(png)
-library(grid)
 img <- readPNG("./images/monthly_plot.png")
 grid.raster(img)
 ```
 
 First, I plot the time series for the monthly air arrivals from U.S. to Canada. By examining the time series, the plot looks seasonal with high peak in June, July and August. Students usually travel during their summer break and this is the main drive of the increase in air travel in these months. There is also a smaller peak in between of each cycle. The small peaks take place in December, which is during Christmas break and students tend to go travel more often. Because the graph doesn't get effect when the variation increase with the level of the series, so I didn't consider the log of the time series. 
  
-
 ```{r fig.width=5, fig.height=7,echo=FALSE}
 img <- readPNG("./images/stl.png")
 grid.raster(img)
@@ -46,5 +39,19 @@ grid.raster(img)
 
 After the basic inspection on the time series, I ran the **stl()** command for a season decomposition of Time Series by Loess. I first inspect the data section. The data looks stationary. I consider the bar on the right hand side as one unit of variation. The bar on the seasonal panel is slightly bigger than the data panel, meaning the seasonal effect is larger than the variation in the data. In the trend panel, it has a larger variation box than the data and seasonal panels, meaning the variation attributed to the trend is much smaller than the seasonal component. It also indicated the trend is not dominating, but there's an upward trend at the end. The spike upward trend of air traveling to Canada in this summer is because the low Canadian dollor, causing a boost to tourism in Canada. The remainder panel shows there are some high residuals in year of 2002 - year of 2005 and year of 2016. 
 
+```{r, fig.width=5, fig.height=7,echo=FALSE}
+t_acf <-  rasterGrob(as.raster(readPNG("./images/acf.png")), interpolate = FALSE)
+t_pacf <-  rasterGrob(as.raster(readPNG("./images/pacf.png")), interpolate = FALSE)
+grid.arrange(t_acf, t_pacf, ncol = 2)
+```
 
-Based on the results on ACF and PACF, I found that there are autoregressive and moving average effects. So I ran the ARIMA model with changing order of p,d, q and seasonal orders. First, I ran the auto arima to get a rough estimate of my orders of seasonal ARIMA. Since the original series looks stationary, I do not need to consider the high order of differencing(**d**). 
+Based on the results on ACF and PACF, I found that there are seasonal autoregressive and moving average effects. So I ran the ARIMA model with changing order of p,d, q and seasonal orders. First, I ran the auto arima to get a rough estimate of my orders of seasonal ARIMA. Since the original series looks stationary, I do not need to consider the high order of differencing(**d**). The best fit ARIMA model with the lowest AIC is **ARIMA $(4, 1, 1) X (0, 1, 1)_{12}$ **
+
+```{r, fig.width=5, fig.height=7,echo=FALSE}
+m_acf <-  rasterGrob(as.raster(readPNG("./images/model_acf.png")), interpolate = FALSE)
+m_pacf <-  rasterGrob(as.raster(readPNG("./images/model_pacf.png")), interpolate = FALSE)
+grid.arrange(m_acf, m_pacf, ncol = 2)
+```
+
+After fitting the model, it is important to diagnostic the residuals of the ARIMA model. The blue line shows the 95% confidence interval under the null hypothesis of white noise. 
+

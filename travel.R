@@ -40,29 +40,23 @@ stl_travel<-stl(travel,s.window = "periodic")
 plot(stl_travel, main="Seasonal Decomposition of Time Series by Loess for monthly Canada Travels")
 dev.off()
 g
-#In the data panel, there is no obvious sign of non-stationary, so we don't need to 
-# take differencing for now. ????
-# we look at the residuals in the stl and see if there's need of differencing 
 
-#Because the graph doesn't seem like it get effect when the variation increases with the level of the series,
-#so there is no need of taking logs  ??????
-#no log 
-
-#which acf and pacf to pick?? the regular one without log and difference?? 
-
-#ACF for MA
-
+#ACF
 acf(canada$Value, lag.max = 60,  main = "ACF for air travel to Canada")
+png("images/acf.png")
 acf(log(canada$Value),lag.max=60, main = "ACF for log Air Travel to Canada") 
+dev.off()
 #the acf appear to be seasonality 
 acf(diff(log(canada$Value),12),lag.max=60, ci.type='ma',
       main="ACF of First Difference of logarithm of Air Travel to Canada")
 acf(diff(diff(log(canada$Value)),12),lag.max=60,ci.type='ma',
     main="ACF of Twice Difference of logarithm of Air Travel to Canada") 
 
-#PACF for AR 
+#PACF 
 pacf(canada$Value, lag.max = 60, main = "PACF for air trave to Canada")
+png("images/pacf.png")
 pacf(log(canada$Value), lag.max = 60, main = "PACF for log Air Travel to Canada")
+dev.off()
 pacf(diff(log(canada$Value),12),lag.max=36,
      main="PACF of First Difference of logarithm of Air Travel to Canada") 
 pacf(diff(diff(log(canada$Value)),12),lag.max=36,
@@ -71,6 +65,7 @@ pacf(diff(diff(log(canada$Value)),12),lag.max=36,
 plot(diff(log(canada$Value),lag=12),xlab='Time', ylab ="Log of arrivals", 
      type = 'l', main = "Twice Difference of logarithm of air travel to Canada") 
 
+#EACF
 eacf(log(canada$Value))
 #eacf the circle ones are surrounded by AR 2 and MA 2
 
@@ -84,7 +79,6 @@ auto
 tsdisplay(residuals(auto))
 tsdiag(auto)
 acf(residuals(auto), lag.max = 36)
-#Auto ARIMA shows that there is no differencing and it's equivalent to ARMA(3,1)
 
 #With seasonal effect 
 #First model with seasonal effect 
@@ -107,9 +101,12 @@ fit2 <- arima(log(data), order=c(2,0,1), seasonal=list(order = c(0,1,2), period 
 tsdisplay(residuals(fit2))
 tsdiag(fit2)
 plot(fit2)
+png("images/modeL_acf.png")
 acf(residuals(fit2)) #compare back to the original acf and pacf 
-#Fit2 has the smallest AIC 
-##check p and q with auto
+dev.off()
+png("images/model_pacf.png")
+pacf(residuals(fit2))
+dev.off()
 
 #Residual plot of the fitted model
 res <- ts(resid(fit2), s=1996,f=12)
