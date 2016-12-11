@@ -8,11 +8,12 @@ fontsize: 12pt
 output: pdf_document
 ---
 
-```{r, echo = F}
-options( warn = 2 )
+```{r, message=F, warning=F, echo = F}
 library(png)
 library(grid)
+library(TSA)
 library(gridExtra)
+load('./model.RData')
 ```
 
 #Introducion
@@ -39,7 +40,9 @@ grid.raster(img)
 
 After the basic inspection on the time series, I ran the **stl()** command for a season decomposition of Time Series by Loess. I first inspect the data section. The data looks stationary. I consider the bar on the right hand side as one unit of variation. The bar on the seasonal panel is slightly bigger than the data panel, meaning the seasonal effect is larger than the variation in the data. In the trend panel, it has a larger variation box than the data and seasonal panels, meaning the variation attributed to the trend is much smaller than the seasonal component. It also indicated the trend is not dominating, but there's an upward trend at the end. The spike upward trend of air traveling to Canada in this summer is because the low Canadian dollor, causing a boost to tourism in Canada. The remainder panel shows there are some high residuals in year of 2002 - year of 2005 and year of 2016. 
 
-#Time Domain Method
+#ARIMA Model
+
+### ACF and PACF
 ```{r, fig.width=5, fig.height=7,echo=FALSE}
 t_acf <-  rasterGrob(as.raster(readPNG("./images/acf.png")), interpolate = FALSE)
 t_pacf <-  rasterGrob(as.raster(readPNG("./images/pacf.png")), interpolate = FALSE)
@@ -48,26 +51,48 @@ grid.arrange(t_acf, t_pacf, ncol = 2)
 
 Based on the results on ACF and PACF, I found that there are seasonal autoregressive and moving average effects. So I ran the ARIMA model with changing order of p,d, q and seasonal orders. First, I ran the auto arima to get a rough estimate of my orders of seasonal ARIMA. Since the original series looks stationary, I do not need to consider the high order of differencing(**d**). Since the seasonal pattern is strong and stable, I use (0,1,2) as a seasonal difference. The best fit ARIMA model with the lowest AIC is **ARIMA $(2, 0, 1) X (0, 1, 2)_{12}$ **
 
+### Residuals of the Model
 ```{r, fig.width=6, fig.height=7,echo=FALSE}
 model_res <-  rasterGrob(as.raster(readPNG("./images/model_res.png")), interpolate = FALSE)
 qq<- rasterGrob(as.raster(readPNG("./images/qq.png")), interpolate = FALSE)
 grid.arrange(model_res, qq, ncol = 2)
 ```
 
-After fitting the model, it is important to diagnostic the residuals of the ARIMA model. The blue line indicates the 95% confidence interval under the null hypothesis of white noise. Both ACF and PACF show the majority of residuals are under the blue thereshold and it passes the residual test. Then, I exaimined the QQ plot to check the normality of the residuals. The plot shows there are a few outliers in the beginning. The most significant one is the first point, which causes by the extreme high value during July 2016. 
+After fitting the model, it is important to diagnostic the residuals of the ARIMA model. The blue line indicates the 95% confidence interval under the null hypothesis of white noise. Both ACF and PACF show the majority of residuals are under the blue thereshold and it passes the residual test. The residuals of fitted models has a few outliers in 2002, 2004 and 2014. I also exaimined the QQ plot to check the normality of the residuals. The plot shows there are a few outliers in the beginning. The most significant one is the first point, which causes by the extreme high value during July 2016. 
 
-#Forecast from ARIMA Model
+### Detecting Outliers 
+```{r, echo = F}
+detectIO(fit2)
+```
+From the residuals plot, I decided to use **detectAO()** and **detectIO()** to determine the outliers. There is no result for detecting additive outliers (AO), so I exaimed the innovative outliers (IO) and found 3 outlier in index 69, 88 and 217. The biggest magnitude comes from index 69, which is September 2001. The main reason of the decreased in travelling to Canada is because of the 9/11 attack. People are being more skeptical of taking air flights in September 2001.
+
+#Forecast from the ARIMA Model
+```{r fig.width=7, fig.height=4,echo=FALSE}
+fcast<- readPNG("./images/frank_forecast.png")
+grid.raster(fcast)
+```
+
+After knowing seasonal ARIMA is a stable estimation of time varing trends and seasonal patterns, I used the forecast model by Frank Davenport to forecast using my best fitted ARIMA model. I set the 15 years of my data into training set and forecast the rest of the 5 years. 
+
+# ARCH-GARCH Model
 
 
-#Time Frequency Method
-
-
-
-
-```{r fig.width=3, fig.height=4,echo=FALSE}
+```{r fig.width=7, fig.height=4,echo=FALSE}
 mcloed<- readPNG("./images/mcleod.png")
 grid.raster(mcloed)
 ```
 
-I ran the McLeod-Li test to see if the p-values reject my null hypothesis. 
+I ran the McLeod-Li test to see if the p-values reject my null hypothesis. All points are above 0.5, thus I don't reject the null hypothesis and it is unnecessary to use the arch garch model. 
 
+#Spectrual Analysis
+
+
+#Conclusion
+
+#References
+
+http://jcyhong.github.io/stat153_lab10.html
+https://www.otexts.org/fpp/8/
+http://a-little-book-of-r-for-time-series.readthedocs.io/en/latest/src/timeseries.html
+http://yunus.hacettepe.edu.tr/~iozkan/eco665/archgarch.html
+http://travel.trade.gov/research/monthly/departures/index.html

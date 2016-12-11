@@ -26,15 +26,12 @@ plot(travel, ylab='Number of arrivals',xlab='Time Index', type = 'l',
 points(travel,pch=m)
 dev.off()
 
-## How to test if it's stationary?? 
-
 ##Exploratory Data Analysis
 
 summary(canada$Value)
 sd(canada$Value)
 
 #STL
-
 png("images/stl.png")
 stl_travel<-stl(travel,s.window = "periodic")
 plot(stl_travel, main="Seasonal Decomposition of Time Series by Loess for monthly Canada Travels")
@@ -104,7 +101,7 @@ dev.off()
 tsdiag(fit2)
 plot(fit2)
 png("images/modeL_acf.png")
-acf(residuals(fit2), lag =) #compare back to the original acf and pacf 
+acf(residuals(fit2)) #compare back to the original acf and pacf 
 dev.off()
 png("images/model_pacf.png")
 pacf(residuals(fit2))
@@ -116,8 +113,6 @@ dev.off()
 
 png("images/mcleod.png")
 McLeod.Li.test(fit2) 
-#above 0.5 of p-values meaning didn't reject H0. 
-#no arch effect so don't need arch-garch 
 dev.off() 
 
 #try sin and cosine  and compare the forecast 
@@ -130,8 +125,6 @@ qqline(resModel)
 dev.off()
 # There are a few outlier in the beginnings 
 hist(resModel,xlab='Standardized Residuals for the fitted model')
-#p-value is lower than 0.5 so it doesnt reject null ??
-shapiro.test(resModel)
 
 # From Frank Davenport
 funggcast <- function(dn,fcast){ 
@@ -159,7 +152,6 @@ funggcast <- function(dn,fcast){
   pd<-merge(ds,dfcastn,all.x=T, all.y =T) #final data.frame for use in ggplot
 
   return(pd)
-  
 }
 
 #cut off the date in earlier term, to forecast more point
@@ -168,7 +160,8 @@ fit_train_model <- Arima(train, order=c(2,0,1),
                     seasonal=list(order = c(0,1,2), period = 12), include.drift=T)
 plot(forecast(fit_train_model))
 
-model_forecast <- forecast(fit_train_model)
+#forecast the next 5 years
+model_forecast <- forecast(fit_train_model, 60)
 model_df <- funggcast(travel, model_forecast)
 
 
@@ -191,7 +184,7 @@ dev.off()
 
 #Detech outlier
 detectAO(fit2) #Additive Outliers
-detectIO(fit2) #Innovative Outliers
+d <-detectIO(fit2) #Innovative Outliers
 #The magnitude (lambda) of IO is bigger so IO has more effect than AO.
 #the same index 81 has an outlier but it doesn't detech the outliers at the end of series
 #IO tells more story 
@@ -204,6 +197,7 @@ spec(resModel,main="Periodogram", kernel = kernel("daniell", c(3,3)), taper = 0.
      ci.plot = T)
 #Can draw a flat line between the interval so there is no ambigitiy
 #Very stable 
+shapiro.test(resModel)
 
 ## Arch Garch Model
 # using standard approach for modeling volatility
@@ -216,3 +210,6 @@ summary(g)
 #based on the small b1 meaning no autoregressive effect 
 #that's why its not necassary to do the garch model 
 #only one bump at the end so 1,1 is good 
+
+save(fit2, d, resModel, file = "./model.RData")
+
