@@ -98,30 +98,36 @@ pacf(residuals(fit1))
 
 #Third model with seasonal effect
 fit2 <- arima(log(data), order=c(2,0,1), seasonal=list(order = c(0,1,2), period = 12))
+png("images/modeL_res.png")
 tsdisplay(residuals(fit2))
+dev.off()
 tsdiag(fit2)
 plot(fit2)
 png("images/modeL_acf.png")
-acf(residuals(fit2)) #compare back to the original acf and pacf 
+acf(residuals(fit2), lag =) #compare back to the original acf and pacf 
 dev.off()
 png("images/model_pacf.png")
 pacf(residuals(fit2))
 dev.off()
-
-#Residual plot of the fitted model
+png("images/model_res_fit.png")
 res <- ts(resid(fit2), s=1996,f=12)
 plot.ts(res,ylab="residuals of the fitted model")
+dev.off()
 
+png("images/mcleod.png")
 McLeod.Li.test(fit2) 
 #above 0.5 of p-values meaning didn't reject H0. 
 #no arch effect so don't need arch-garch 
+dev.off() 
 
 #try sin and cosine  and compare the forecast 
 
+png("images/qq.png")
 resModel <- residuals(fit2)
 #Normal QQ Plot for residuals
 qqnorm(resModel)
 qqline(resModel)
+dev.off()
 # There are a few outlier in the beginnings 
 hist(resModel,xlab='Standardized Residuals for the fitted model')
 #p-value is lower than 0.5 so it doesnt reject null ??
@@ -133,9 +139,9 @@ funggcast <- function(dn,fcast){
  # en<-max(time(fcast$mean)) #extract the max date used in the forecast
   
   #Extract Source and Training Data
-  ds<-as.data.frame(window(dn,end=c(2014,9)))
+  ds<-as.data.frame(window(dn,end=c(2011,9)))
   names(ds)<-'observed'
-  ds$date<-as.Date(time(window(dn,end=c(2014,9))))
+  ds$date<-as.Date(time(window(dn,end=c(2011,9))))
   
   #Extract the Fitted Values (need to figure out how to grab confidence intervals)
   dfit<-as.data.frame(fcast$fitted)
@@ -145,17 +151,19 @@ funggcast <- function(dn,fcast){
   ds<-merge(ds,dfit,all.x=T) #Merge fitted values with source and training data
   
   #Exract the Forecast values and confidence intervals
-  dfcastn<-as.data.frame(fcast)
+  dfcastn<-as.data.frame(model_forecast)
   dfcastn$date<-as.Date(as.yearmon(row.names(dfcastn)))
+  #dfcastn$date<-as.Date(row.names(dfcastn))
   names(dfcastn)<-c('forecast','lo80','hi80','lo95','hi95','date')
-  
-  pd<-merge(ds,dfcastn,all.x=T) #final data.frame for use in ggplot
+  rownames(dfcastn) <- NULL
+  pd<-merge(ds,dfcastn,all.x=T, all.y =T) #final data.frame for use in ggplot
+
   return(pd)
   
 }
 
 #cut off the date in earlier term, to forecast more point
-train <- window(travel, end=c(2014,9))
+train <- window(travel, end=c(2011,9))
 fit_train_model <- Arima(train, order=c(2,0,1), 
                     seasonal=list(order = c(0,1,2), period = 12), include.drift=T)
 plot(forecast(fit_train_model))
@@ -198,7 +206,7 @@ spec(resModel,main="Periodogram", kernel = kernel("daniell", c(3,3)), taper = 0.
 #Very stable 
 
 ## Arch Garch Model
-#
+# using standard approach for modeling volatility
 g <- garch(resModel, order = c(1,1))
 plot(g) #use which to select the plot
 summary(g)
