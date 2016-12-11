@@ -130,9 +130,9 @@ funggcast <- function(dn,fcast){
  # en<-max(time(fcast$mean)) #extract the max date used in the forecast
   
   #Extract Source and Training Data
-  ds<-as.data.frame(window(dn,end=c(2011,9)))
+  ds<-as.data.frame(window(dn,end=c(2012,12)))
   names(ds)<-'observed'
-  ds$date<-as.Date(time(window(dn,end=c(2011,9))))
+  ds$date<-as.Date(time(window(dn,end=c(2012,12))))
   
   #Extract the Fitted Values (need to figure out how to grab confidence intervals)
   dfit<-as.data.frame(fcast$fitted)
@@ -153,13 +153,13 @@ funggcast <- function(dn,fcast){
 }
 
 #cut off the date in earlier term, to forecast more point
-train <- window(travel, end=c(2011,9))
+train <- window(travel, end=c(2012,12))
 fit_train_model <- Arima(train, order=c(2,0,1), 
-                    seasonal=list(order = c(0,1,2), period = 12), include.drift=T)
+                    seasonal=list(order = c(0,1,2), period = 12))
 plot(forecast(fit_train_model))
 
-#forecast the next 5 years
-model_forecast <- forecast(fit_train_model, 60)
+#forecast the next 45 months
+model_forecast <- forecast(fit_train_model, 45)
 model_df <- funggcast(travel, model_forecast)
 
 
@@ -179,16 +179,16 @@ png("images/frank_forecast.png")
 ggplot_forecast(model_df)
 dev.off()
 
-
 #Detech outlier
 detectAO(fit2) #Additive Outliers
 detectIO(fit2) #Innovative Outliers
 
 ## Spectral Analysis
 png("images/periodogram.png")
-periodogram(resModel, main = "Periodogram for the residuals of the model")
+spec_diff <- periodogram(resModel, main = "Periodogram for the residuals of the model")
 dev.off()
 
+key_freq <- spec_diff$freq[which(spec_diff$spec > 10^4)]
 spec.pgram(resModel,  kernel = kernel("daniell", c(3,3)), taper = 0.05)
 
 png("images/smooth_periodogram.png")
@@ -208,7 +208,7 @@ summary(g)
 #computational error so there is NA value
 #based on the small b1 meaning no autoregressive effect 
 #that's why its not necassary to do the garch model 
-#only one bump at the end so 1,1 is good 
 
-save(fit2, d, resModel, file = "./model.RData")
+
+save(fit2, d, g, resModel, file = "./model.RData")
 

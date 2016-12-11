@@ -74,10 +74,12 @@ grid.arrange(model_res, qq, ncol = 2)
 
 After fitting the model, it is important to diagnostic the residuals of the ARIMA model. The blue line indicates the 95% confidence interval under the null hypothesis of white noise. Both ACF and PACF show the majority of residuals are under the blue thereshold and it passes the residual test. The residuals of fitted models has a few outliers in 2002, 2004 and 2014. I also exaimined the QQ plot to check the normality of the residuals. The plot shows there are a few outliers in the beginning. The most significant one is the first point, which causes by the extreme high value during July 2016. 
 
-### Detecting Outliers 
+### Detecting Outliers
+
 ```{r, echo = F}
 detectIO(fit2)
 ```
+
 From the residuals plot, I decided to use **detectAO()** and **detectIO()** to determine the outliers. There is no result for detecting additive outliers (AO), so I exaimed the innovative outliers (IO) and found 3 outlier in index 69, 88 and 217. The biggest magnitude comes from index 69, which is September 2001. The main reason of the decreased in travelling to Canada is because of the 9/11 attack. People are being more skeptical of taking air flights in September 2001.
 
 #Forecast from the ARIMA Model
@@ -86,7 +88,7 @@ fcast<- readPNG("./images/frank_forecast.png")
 grid.raster(fcast)
 ```
 
-After knowing seasonal ARIMA is a stable estimation of time varing trends and seasonal patterns, I used the forecast model by Frank Davenport to forecast using my best fitted ARIMA model. I set the 15 years of my data into training set and forecast the rest of the 5 years. 
+After knowing seasonal ARIMA is a stable estimation of time varing trends and seasonal patterns, I used the forecast model by Frank Davenport to forecast using my best fitted ARIMA model. I set the 17 years of my data into training set and forecast the rest of the 45 months. The forecast is underestimating the actual data points. 
 
 #Spectrual Analysis
 
@@ -95,7 +97,7 @@ p<- readPNG("./images/periodogram.png")
 grid.raster(p)
 ```
 
-There are a few peaks in this periodogram in frequency 0.27, 0.43 and 0.46. 
+The time series appears to be smooth because there are more values of low frequencies. There are only a few peaks in this periodogram in frequency 0.27, 0.43 and 0.46, where the time series has a strong sinusoidal signal for these frequency. 
 
 ```{r fig.width=7, fig.height=4,echo=FALSE}
 sp<- readPNG("./images/smooth_periodogram.png")
@@ -105,7 +107,11 @@ grid.raster(sp)
 I can draw a flat line from the smoothed periodogram between the intervals; thus, there is no ambigity. The periodogram demonstrates very stable. 
 
 # ARCH-GARCH Model
-Although I used McLeod-Li test to check if there is a need of Arch-garch test, I will to reassure my assumption by running the garch model. 
+Although I used McLeod-Li test to check if there is a need of Arch-garch test, I want to reassure my assumption by running the garch model. From my original time series, it show that there is only one bump at the end of the series. Thus, I used the standard approach for modeling volatility of Garch(1,1). 
+```{r}
+summary(g)
+```
+
 
 #Conclusion
 The answer to my question is .. 
