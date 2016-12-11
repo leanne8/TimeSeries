@@ -77,9 +77,8 @@ tsdisplay(residuals(auto))
 tsdiag(auto)
 acf(residuals(auto), lag.max = 36)
 
-#With seasonal effect 
 #First model with seasonal effect 
-fit <- arima(log(data), order = c(2,0,2), seasonal=list(order = c(2,1,2), period = 12))
+fit <- arima(log(data), order = c(1,1,1), seasonal=list(order = c(0,1,2), period = 12))
 tsdisplay(residuals(fit))
 tsdiag(fit)
 acf(residuals(fit))
@@ -123,7 +122,6 @@ resModel <- residuals(fit2)
 qqnorm(resModel)
 qqline(resModel)
 dev.off()
-# There are a few outlier in the beginnings 
 hist(resModel,xlab='Standardized Residuals for the fitted model')
 
 # From Frank Davenport
@@ -184,19 +182,20 @@ dev.off()
 
 #Detech outlier
 detectAO(fit2) #Additive Outliers
-d <-detectIO(fit2) #Innovative Outliers
-#The magnitude (lambda) of IO is bigger so IO has more effect than AO.
-#the same index 81 has an outlier but it doesn't detech the outliers at the end of series
-#IO tells more story 
+detectIO(fit2) #Innovative Outliers
 
 ## Spectral Analysis
+png("images/periodogram.png")
 periodogram(resModel, main = "Periodogram for the residuals of the model")
+dev.off()
 
 spec.pgram(resModel,  kernel = kernel("daniell", c(3,3)), taper = 0.05)
+
+png("images/smooth_periodogram.png")
 spec(resModel,main="Periodogram", kernel = kernel("daniell", c(3,3)), taper = 0.05,
      ci.plot = T)
-#Can draw a flat line between the interval so there is no ambigitiy
-#Very stable 
+dev.off()
+
 shapiro.test(resModel)
 
 ## Arch Garch Model
