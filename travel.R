@@ -131,7 +131,6 @@ funggcast <- function(dn,fcast){
   
 }
 
-
 train <- window(travel, end=c(2012,12))
 fit_train_model <- Arima(train, order=c(2,0,1), 
                     seasonal=list(order = c(0,1,2), period = 12))
@@ -157,25 +156,24 @@ detectAO(fit2) #Additive Outliers
 detectIO(fit2) #Innovative Outliers
 
 ## Spectral Analysis
-
-p <- periodogram(travel, main = "Periodogram for the original data")
+p <- periodogram(travel, main = "Periodogram")
 spec.pgram(travel,  kernel = kernel("daniell", c(3,3)), taper = 0.05)
 
 spec(travel,main="Smoothed Periodogram", kernel = kernel("daniell", c(3,3)), taper = 0.05,
      ci.plot = T)
 
-#Harmonics
-key_freq <- p$freq[which(p$spec > 10^10)]
+#Spectral Representation
+key_freq <- p$freq[which(p$spec > 10^11)]
 t <- 1:length(travel)
 harmonics <- do.call(cbind, lapply(key_freq, function(freq){
   cbind(cos(2 * pi * freq * t), sin(2 * pi * freq * t))
 }))
 reslm <- lm(travel ~ harmonics)
-plot(t, travel, type="l", main = "Harmonics Model")
+png(filename = "./images/sp.png")
+plot(t, travel, type="l")
 lines(fitted(reslm)~t, col=4, lty=2)
+dev.off()
 
 t_train <- 1:length(train)
 spec_train<- periodogram(train)
-
-save(fit2, d, g, resModel, file = "./model.RData")
 
